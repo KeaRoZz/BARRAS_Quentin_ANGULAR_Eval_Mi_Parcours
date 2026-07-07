@@ -100,6 +100,7 @@ Sur la route de déplacement direct, une vérification supplémentaire s'assure 
 
 ## Structure
 
+```
 │ BARRAS_Quentin_ANGULAR_Eval8Mi_Parcours
 ├── demo-dw1-26-back-main/         # Backend Express
 │   ├── index.js
@@ -113,3 +114,4 @@ Sur la route de déplacement direct, une vérification supplémentaire s'assure 
 │   ├── accueil/
 │   └── connexion/
 └── models/
+```
