@@ -1,0 +1,55 @@
+<div class="contenu" [class.mode-deplacement]="idImageEnDeplacement() !== null">
+  <div class="d-flex">
+    <input [(ngModel)]="nouvelleUrlImage" />
+    <div (click)="onAjoutImage()" class="bouton">
+      <span>Ajouter l'image</span>
+    </div>
+  </div>
+
+  <div class="liste-categories">
+    @for (categorie of categories(); track indexCategorie; let indexCategorie = $index) {
+      <div class="categorie">
+        <div class="en-tete" (click)="onDeplacerVersCategorie(categorie.id)">
+          <span>{{ categorie.titre }}</span>
+        </div>
+
+        <div class="images">
+          @for (image of categorie.images; track image.id; let indexImage = $index) {
+            <!-- <img src="{{ urlImage }}" /> -->
+            <div class="image">
+              <img [attr.src]="image.url" />
+              <div
+                (click)="onSuppressionImage(image.id)"
+                class="bouton bouton-supprimer"
+              >
+                <span>x</span>
+              </div>
+
+              <div
+                (click)="onActiverDeplacement(image.id)"
+                class="bouton bouton-deplacer"
+              >
+                <span>✥</span>
+              </div>
+
+              @if (indexCategorie != 0) {
+                <div (click)="onDeplacement(image.id)" class="bouton bouton-haut">
+                  <span>+</span>
+                </div>
+              }
+
+              @if (indexCategorie < categories().length - 1){
+                <div
+                  (click)="onDeplacement(image.id,  false)"
+                  class="bouton bouton-bas"
+                >
+                  <span>-</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>
