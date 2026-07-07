@@ -141,27 +141,57 @@ app.get("/categories", [jwtInterceptor], (req, res) => {
   );
 });
 
-app.post("/ajout-image", (req, res) => {
-  // categories.forEach(categorie => {
-  //   categorie.forEach((urlImage) =>{} {
-  //     //traitement
-  //   });
-  // })
+app.post("/ajout-image", [jwtInterceptor], (req, res) => {
+  const idCategorie = parseInt(req.body.idCategorie, 10);
+  const urlImage = req.body.urlImage;
 
-  //on vérifie qu'il n'y a pas d'URL identique dans le tableau
-  for (let categorie of categories) {
-    for (let urlImage of categorie.images) {
-      //est ce que l'url envoyée est identique à l'url que l'on est en train de parcourir
-      if (urlImage === req.body.urlImage) {
-        //on met fin à la fonction en renvoyent un code CONFLIT
-        return res.status(409).send();
-      }
-    }
+  if (isNaN(idCategorie) || !urlImage) {
+    return res.status(400).send();
   }
 
-  categories[req.body.indexCategorie].images.push(req.body.urlImage);
+  //on verifie que la catégorie cible appartient bien à l'utilisateur connecté
+  connection.query(
+    `SELECT id FROM categorie WHERE id = ? AND user_id = ?`,
+    [idCategorie, req.user.id],
+    (erreur, resultat) => {
+      if (erreur) {
+        console.log(erreur);
+        return res.status(500).send();
+      }
 
-  res.status(201).send();
+      if (resultat.length === 0) {
+        return res.status(403).send();
+      }
+
+      //on verifie qu'aucune image avec cette URL n'existe déjà chez l'utilisateur
+      connection.query(
+        `SELECT id FROM image WHERE url = ? AND categorie_id IN (SELECT id FROM categorie WHERE user_id = ?)`,
+        [urlImage, req.user.id],
+        (erreur, resultat) => {
+          if (erreur) {
+            console.log(erreur);
+            return res.status(500).send();
+          }
+
+          if (resultat.length > 0) {
+            return res.status(409).send();
+          }
+
+          connection.query(
+            `INSERT INTO image (url, categorie_id) VALUES (?, ?)`,
+            [urlImage, idCategorie],
+            (erreur) => {
+              if (erreur) {
+                console.log(erreur);
+                return res.status(500).send();
+              }
+              res.status(201).send();
+            },
+          );
+        },
+      );
+    },
+  );
 });
 
 app.delete(

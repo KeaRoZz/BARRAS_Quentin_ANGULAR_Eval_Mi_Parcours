@@ -62,9 +62,12 @@ export class Accueil {
 
   onAjoutImage() {
     if (this.nouvelleUrlImage != '') {
+      const premiereCategorie = this.categories()[0];
+      if (!premiereCategorie) return;
+
       this.httpClient
         .post('http://localhost:7777/ajout-image', {
-          indexCategorie: 0,
+          idCategorie: premiereCategorie.id,
           urlImage: this.nouvelleUrlImage,
         })
         .subscribe({
