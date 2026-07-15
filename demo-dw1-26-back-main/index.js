@@ -90,11 +90,12 @@ app.get("/categories", [jwtInterceptor], (req, res) => {
   //cad les catégories dont le user_id est égale à l'id de l'utilisateur
   //dont l'email est celui stocké à la propriété sub du JWT
   connection.query(
-    `SELECT c.id AS categorie_id, c.nom, i.id AS image_id, url
+    `SELECT c.id AS categorie_id, c.nom, c.ordre, i.id AS image_id, url
             FROM user u 
             JOIN categorie c ON u.id = c.user_id
             LEFT JOIN image i ON c.id = i.categorie_id
-            WHERE u.id = ?`,
+            WHERE u.id = ?
+            ORDER BY c.ordre`,
     [req.user.id],
     (erreur, resultat) => {
       //ne devrait pas arriver,
@@ -115,6 +116,7 @@ app.get("/categories", [jwtInterceptor], (req, res) => {
           groupeCategorie[ligne.categorie_id] = {
             id: ligne.categorie_id,
             titre: ligne.nom,
+            ordre: ligne.ordre,
             images: [],
           };
         }
@@ -134,7 +136,9 @@ app.get("/categories", [jwtInterceptor], (req, res) => {
       // (comme on s'est basé sur l'index du pour filtrer :
       // ajouter un categorie à l'index 500, aura créé des index vide de 0 à 499)
 
-      const categories = groupeCategorie.filter((item) => item != null);
+      const categories = groupeCategorie
+        .filter((item) => item != null)
+        .sort((a, b) => a.ordre - b.ordre);
 
       res.json(categories);
     },
@@ -194,6 +198,138 @@ app.post("/ajout-image", [jwtInterceptor], (req, res) => {
   );
 });
 
+app.post("/categorie", [jwtInterceptor], (req, res) => {
+  const nom = req.body.nom;
+
+  if (!nom) {
+    return res.status(400).send();
+  }
+
+  //on insere la catégorie avec un ordre = max(ordre) + 1 pour l'utilisateur
+  connection.query(
+    `INSERT INTO categorie (nom, user_id, ordre)
+     SELECT ?, ?, COALESCE(MAX(ordre), 0) + 1 FROM categorie WHERE user_id = ?`,
+    [nom, req.user.id, req.user.id],
+    (erreur) => {
+      if (erreur) {
+        console.log(erreur);
+        return res.status(500).send();
+      }
+      res.status(201).send();
+    },
+  );
+});
+
+app.patch("/categorie/:id/deplacement", [jwtInterceptor], (req, res) => {
+  const idCategorie = parseInt(req.params.id, 10);
+  const haut = req.body.haut;
+
+  if (isNaN(idCategorie)) {
+    return res.status(400).send();
+  }
+
+  //on verifie que la catégorie appartient à l'utilisateur connecté
+  connection.query(
+    `SELECT id, ordre FROM categorie WHERE id = ? AND user_id = ?`,
+    [idCategorie, req.user.id],
+    (erreur, resultat) => {
+      if (erreur) {
+        console.log(erreur);
+        return res.status(500).send();
+      }
+
+      if (resultat.length === 0) {
+        return res.status(403).send();
+      }
+
+      const ordreActuel = resultat[0].ordre;
+
+      //on recupere toutes les catégories de l'utilisateur triées par ordre
+      connection.query(
+        `SELECT id, ordre FROM categorie WHERE user_id = ? ORDER BY ordre`,
+        [req.user.id],
+        (erreur, listeCategorie) => {
+          if (erreur) {
+            console.log(erreur);
+            return res.status(500).send();
+          }
+
+          const indexActuel = listeCategorie.findIndex(
+            (cat) => cat.id === idCategorie,
+          );
+          const nouvelIndex = indexActuel + (haut ? -1 : 1);
+
+          if (nouvelIndex < 0 || nouvelIndex >= listeCategorie.length) {
+            return res.status(400).send();
+          }
+
+          const voisine = listeCategorie[nouvelIndex];
+
+          //on echange les valeurs d'ordre entre la catégorie et sa voisine
+          connection.query(
+            `UPDATE categorie SET ordre = ? WHERE id = ?`,
+            [voisine.ordre, idCategorie],
+            (erreur) => {
+              if (erreur) {
+                console.log(erreur);
+                return res.status(500).send();
+              }
+
+              connection.query(
+                `UPDATE categorie SET ordre = ? WHERE id = ?`,
+                [ordreActuel, voisine.id],
+                (erreur) => {
+                  if (erreur) {
+                    console.log(erreur);
+                    return res.status(500).send();
+                  }
+                  res.status(204).send();
+                },
+              );
+            },
+          );
+        },
+      );
+    },
+  );
+});
+
+app.delete("/categorie/:id", [jwtInterceptor], (req, res) => {
+  const idCategorie = parseInt(req.params.id, 10);
+
+  if (isNaN(idCategorie)) {
+    return res.status(400).send();
+  }
+
+  //on verifie que la catégorie appartient bien à l'utilisateur connecté
+  connection.query(
+    `SELECT id FROM categorie WHERE id = ? AND user_id = ?`,
+    [idCategorie, req.user.id],
+    (erreur, resultat) => {
+      if (erreur) {
+        console.log(erreur);
+        return res.status(500).send();
+      }
+
+      if (resultat.length === 0) {
+        return res.status(403).send();
+      }
+
+      connection.query(
+        `DELETE FROM categorie WHERE id = ?`,
+        [idCategorie],
+        (erreur) => {
+          if (erreur) {
+            console.log(erreur);
+            return res.status(500).send();
+          }
+          res.status(204).send();
+        },
+      );
+    },
+  );
+});
+
 app.delete(
   "/supprimer-image/:id",
   [jwtInterceptor, imageOwnerInterceptor],
@@ -223,9 +359,9 @@ app.patch(
 
     const haut = req.body.haut;
 
-    //On recupere toutes les categorie de l'utilisateur ordonnée par id croissant
+    //On recupere toutes les categorie de l'utilisateur ordonnée par ordre croissant
     connection.query(
-      `SELECT id FROM categorie WHERE user_id = ? ORDER BY id`,
+      `SELECT id FROM categorie WHERE user_id = ? ORDER BY ordre`,
       [req.user.id],
       (erreur, listeCategorie) => {
         if (erreur) {

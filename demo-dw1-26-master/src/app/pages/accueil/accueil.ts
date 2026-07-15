@@ -1,16 +1,19 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-accueil',
-  imports: [FormsModule],
+  imports: [FormsModule, MatIconModule],
   templateUrl: './accueil.html',
   styleUrl: './accueil.scss',
 })
 export class Accueil {
   nouvelleUrlImage =
     'https://s2.qwant.com/thumbr/474x266/f/b/ad4d78aa76c0c65be16fe233a6aeb2ba6d464a7be6e4234c2e586044830d59/OIP.4IXeglpzpeyzgxRKIH10LAHaEK.jpg?u=https%3A%2F%2Ftse.mm.bing.net%2Fth%2Fid%2FOIP.4IXeglpzpeyzgxRKIH10LAHaEK%3Fpid%3DApi&q=0&b=1&p=0&a=0';
+
+  nouveauNomCategorie = '';
 
   //categories: Categorie[] = []; // pas possible sinon nous n'aurions pas de raffraichissement du composant
 
@@ -85,6 +88,37 @@ export class Accueil {
       this.nouvelleUrlImage = '';
       // this.sauvegarde();
     }
+  }
+
+  onAjoutCategorie() {
+    if (this.nouveauNomCategorie.trim() === '') return;
+
+    this.httpClient
+      .post('http://localhost:7777/categorie', {
+        nom: this.nouveauNomCategorie.trim(),
+      })
+      .subscribe(() => {
+        this.nouveauNomCategorie = '';
+        this.chargement();
+      });
+  }
+
+  onDeplacementCategorie(idCategorie: number, haut: boolean) {
+    this.httpClient
+      .patch(`http://localhost:7777/categorie/${idCategorie}/deplacement`, { haut })
+      .subscribe(() => this.chargement());
+  }
+
+  onSuppressionCategorie(idCategorie: number, nomCategorie: string, nbImages: number) {
+    const message = nbImages > 0
+      ? `Supprimer la catégorie "${nomCategorie}" ainsi que ses ${nbImages} image(s) ?`
+      : `Supprimer la catégorie "${nomCategorie}" ?`;
+
+    if (!confirm(message)) return;
+
+    this.httpClient
+      .delete(`http://localhost:7777/categorie/${idCategorie}`)
+      .subscribe(() => this.chargement());
   }
 
   onSuppressionImage(idImage: number) {

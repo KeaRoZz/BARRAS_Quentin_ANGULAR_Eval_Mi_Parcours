@@ -1,16 +1,45 @@
 <div class="contenu" [class.mode-deplacement]="idImageEnDeplacement() !== null">
   <div class="d-flex">
-    <input [(ngModel)]="nouvelleUrlImage" />
+    <input [(ngModel)]="nouvelleUrlImage" placeholder="URL de l'image" />
     <div (click)="onAjoutImage()" class="bouton">
       <span>Ajouter l'image</span>
+    </div>
+    <input [(ngModel)]="nouveauNomCategorie" placeholder="Nom de la catégorie" />
+    <div (click)="onAjoutCategorie()" class="bouton">
+      <span>Ajouter la catégorie</span>
     </div>
   </div>
 
   <div class="liste-categories">
-    @for (categorie of categories(); track indexCategorie; let indexCategorie = $index) {
+    @for (categorie of categories(); track categorie.id; let indexCategorie = $index) {
       <div class="categorie">
         <div class="en-tete" (click)="onDeplacerVersCategorie(categorie.id)">
           <span>{{ categorie.titre }}</span>
+
+          <div
+            (click)="$event.stopPropagation(); onSuppressionCategorie(categorie.id, categorie.titre, categorie.images.length)"
+            class="bouton bouton-cat-supprimer"
+          >
+            <mat-icon>close</mat-icon>
+          </div>
+
+          @if (indexCategorie != 0) {
+            <div
+              (click)="$event.stopPropagation(); onDeplacementCategorie(categorie.id, true)"
+              class="bouton bouton-cat-haut"
+            >
+              <mat-icon>arrow_upward</mat-icon>
+            </div>
+          }
+
+          @if (indexCategorie < categories().length - 1) {
+            <div
+              (click)="$event.stopPropagation(); onDeplacementCategorie(categorie.id, false)"
+              class="bouton bouton-cat-bas"
+            >
+              <mat-icon>arrow_downward</mat-icon>
+            </div>
+          }
         </div>
 
         <div class="images">
@@ -22,19 +51,19 @@
                 (click)="onSuppressionImage(image.id)"
                 class="bouton bouton-supprimer"
               >
-                <span>x</span>
+                <mat-icon>close</mat-icon>
               </div>
 
               <div
                 (click)="onActiverDeplacement(image.id)"
                 class="bouton bouton-deplacer"
               >
-                <span>✥</span>
+                <mat-icon>open_with</mat-icon>
               </div>
 
               @if (indexCategorie != 0) {
                 <div (click)="onDeplacement(image.id)" class="bouton bouton-haut">
-                  <span>+</span>
+                  <mat-icon>arrow_upward</mat-icon>
                 </div>
               }
 
@@ -43,7 +72,7 @@
                   (click)="onDeplacement(image.id,  false)"
                   class="bouton bouton-bas"
                 >
-                  <span>-</span>
+                  <mat-icon>arrow_downward</mat-icon>
                 </div>
               }
             </div>

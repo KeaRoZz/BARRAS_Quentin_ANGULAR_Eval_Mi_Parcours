@@ -1,62 +1,169 @@
+:host {
+  display: block;
+  padding: 24px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.d-flex {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: center;
+
+  input {
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    min-width: 240px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+
+    &:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+  }
+}
+
 .bouton {
-  background-color: blue;
+  background-color: #3b82f6;
   color: white;
-  border-radius: 5px;
-  width: fit-content;
-  padding: 5px;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
   user-select: none;
+  transition: background-color 0.15s, transform 0.1s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 
   &:hover {
-    background-color: rgb(0, 68, 255);
+    background-color: #2563eb;
     cursor: pointer;
   }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.liste-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: #f9fafb;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  width: 100%;
 }
 
 .categorie {
   display: flex;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  background-color: white;
 
-  &:nth-child(1) .en-tete {
-    background-color: red;
-  }
-
-  &:nth-child(2) .en-tete {
-    background-color: orange;
-  }
-
-  &:nth-child(3) .en-tete {
-    background-color: yellow;
-  }
-
-  &:nth-child(4) .en-tete {
-    background-color: lightgreen;
-  }
-
-  &:nth-child(5) .en-tete {
-    background-color: lightblue;
-  }
+  &:nth-child(6n + 1) .en-tete { background-color: #ef4444; }
+  &:nth-child(6n + 2) .en-tete { background-color: #f97316; }
+  &:nth-child(6n + 3) .en-tete { background-color: #eab308; }
+  &:nth-child(6n + 4) .en-tete { background-color: #22c55e; }
+  &:nth-child(6n + 5) .en-tete { background-color: #3b82f6; }
+  &:nth-child(6n)     .en-tete { background-color: #a855f7; }
 
   .en-tete {
-    height: 100px;
-    width: 100px;
-    background-color: violet;
+    height: 110px;
+    width: 110px;
+    flex-shrink: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
 
-    span {
+    > span {
       color: white;
+      font-weight: 600;
+      font-size: 16px;
+      text-align: center;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+      word-break: break-word;
+    }
+
+    &:hover .bouton {
+      opacity: 1;
+    }
+
+    .bouton {
+      width: 22px;
+      height: 22px;
+      position: absolute;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      transition: opacity 0.2s, background-color 0.15s;
+      padding: 0;
+      background-color: rgba(0, 0, 0, 0.65);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.85);
+      }
+
+      &.bouton-cat-haut {
+        top: 4px;
+        right: 4px;
+      }
+
+      &.bouton-cat-bas {
+        bottom: 4px;
+        right: 4px;
+      }
+
+      &.bouton-cat-supprimer {
+        top: 4px;
+        left: 4px;
+        background-color: #ef4444;
+        border: 1px solid rgba(0, 0, 0, 0.5);
+
+        &:hover {
+          background-color: #dc2626;
+        }
+      }
+
+      mat-icon {
+        color: white;
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        line-height: 14px;
+      }
     }
   }
 
   .images {
-    background-color: lightgrey;
+    background-color: #f3f4f6;
     flex: 1;
     display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px;
+    min-height: 110px;
 
     .image {
       position: relative;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 
       img {
-        width: 100px;
-        height: 100px;
+        width: 96px;
+        height: 96px;
         object-fit: cover;
+        display: block;
       }
 
       &:hover .bouton {
@@ -64,49 +171,64 @@
       }
 
       .bouton {
-        width: 20px;
-        height: 20px;
-        align-items: center;
-        justify-content: center;
+        width: 22px;
+        height: 22px;
         position: absolute;
         border-radius: 50%;
-        display: flex;
+        display: grid;
+        place-items: center;
         opacity: 0;
-        transition: opacity 0.5s;
+        transition: opacity 0.2s, background-color 0.15s;
+        padding: 0;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+
+        mat-icon {
+          color: white;
+          font-size: 14px;
+          width: 14px;
+          height: 14px;
+          line-height: 14px;
+        }
 
         &.bouton-supprimer {
-          background-color: red;
-          top: 2px;
-          right: 2px;
+          background-color: #ef4444;
+          top: 4px;
+          right: 4px;
 
           &:hover {
-            background-color: rgba(255, 0, 0, 0.599);
+            background-color: #dc2626;
           }
         }
 
         &.bouton-haut {
-          top: 2px;
-          left: 2px;
+          background-color: rgba(0, 0, 0, 0.65);
+          top: 4px;
+          left: 4px;
+
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.85);
+          }
         }
 
         &.bouton-bas {
-          bottom: 2px;
-          left: 2px;
+          background-color: rgba(0, 0, 0, 0.65);
+          bottom: 4px;
+          left: 4px;
+
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.85);
+          }
         }
 
         &.bouton-deplacer {
-          background-color: #333;
+          background-color: rgba(0, 0, 0, 0.75);
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
 
           &:hover {
-            background-color: #555;
+            background-color: rgba(0, 0, 0, 0.95);
           }
-        }
-
-        span {
-          margin-top: -4px;
         }
       }
     }
@@ -118,12 +240,16 @@
     opacity: 0;
   }
 
+  .en-tete:hover .bouton {
+    opacity: 0;
+  }
+
   .en-tete {
     cursor: pointer;
-    transition: filter 0.2s;
+    transition: filter 0.2s, outline 0.2s;
 
     &:hover {
-      filter: brightness(1.15);
+      filter: brightness(1.1);
       outline: 3px solid white;
       outline-offset: -3px;
     }
