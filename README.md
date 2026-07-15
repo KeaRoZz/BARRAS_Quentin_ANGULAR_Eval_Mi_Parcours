@@ -1,6 +1,6 @@
 # Tier List — Évaluation Mi-Parcours Angular
 
-Application de tier-list permettant à un utilisateur connecté de gérer ses images réparties en catégories (Top / Moyen / Nul), avec un système de déplacement inter-catégories.
+Application de tier-list permettant à un utilisateur connecté de gérer ses catégories et ses images, avec un système complet de déplacement et de réordonnancement.
 
 ## Stack
 
@@ -9,6 +9,7 @@ Application de tier-list permettant à un utilisateur connecté de gérer ses im
 - TypeScript
 - Signals + syntaxe `@for` / `@if`
 - SCSS
+- Angular Material (icônes)
 
 **Backend**
 - Node.js + Express
@@ -46,7 +47,7 @@ Services démarrés :
 - MySQL sur `localhost:3306`
 - phpMyAdmin sur `http://localhost:81`
 
-Créer la base `tier_list` et son schéma via phpMyAdmin en exécutant le script SQL fourni.
+Créer la base `tier_list` et son schéma via phpMyAdmin en exécutant le script SQL fourni. La table `categorie` doit inclure une colonne `ordre INT NOT NULL DEFAULT 0` pour permettre le réordonnancement.
 
 ### 3. Backend
 
@@ -72,23 +73,34 @@ Application disponible sur `http://localhost:4200`.
 
 ## Fonctionnalités
 
-- Connexion / déconnexion via JWT
-- Affichage des catégories et images de l'utilisateur connecté
-- Ajout d'image par URL
+### Gestion des images
+- Ajout d'image par URL (persistance en base)
 - Suppression d'image
-- Déplacement d'image vers la catégorie précédente / suivante (boutons `+` / `-`)
-- **Mode déplacement direct** : clic sur l'icône `✥` au centre de l'image, puis clic sur l'en-tête de la catégorie cible
+- Déplacement vers la catégorie précédente / suivante via boutons de flèches
+- **Mode déplacement direct** : clic sur l'icône centrale au survol d'une image, puis clic sur l'en-tête de la catégorie cible
+
+### Gestion des catégories
+- Création d'une nouvelle catégorie
+- Suppression d'une catégorie (avec confirmation)
+- Réordonnancement via boutons haut / bas sur l'en-tête (visibles au survol)
+
+### Authentification
+- Connexion / déconnexion via JWT
+- Toutes les données affichées sont filtrées par utilisateur connecté
 
 ## API
 
 | Méthode | Route | Auth | Description |
 |---------|-------|------|-------------|
 | POST | `/login` | ❌ | Authentification, renvoie un JWT |
-| GET | `/categories` | ✅ | Liste les catégories et images de l'utilisateur |
-| POST | `/ajout-image` | ❌ | Ajoute une image (in-memory legacy) |
+| GET | `/categories` | ✅ | Liste les catégories et images de l'utilisateur, triées par ordre |
+| POST | `/ajout-image` | ✅ | Ajoute une image en base pour l'utilisateur |
 | DELETE | `/supprimer-image/:id` | ✅ | Supprime une image de l'utilisateur |
 | PATCH | `/deplacement-image/:id` | ✅ | Déplace une image d'une catégorie à la suivante (body : `{ haut: boolean }`) |
 | PATCH | `/deplacement-image/:id/categorie/:idCategorie` | ✅ | Déplace une image vers une catégorie cible précise |
+| POST | `/categorie` | ✅ | Crée une nouvelle catégorie |
+| PATCH | `/categorie/:id/deplacement` | ✅ | Déplace une catégorie vers le haut ou le bas (body : `{ haut: boolean }`) |
+| DELETE | `/categorie/:id` | ✅ | Supprime une catégorie et ses images (cascade) |
 
 ## Sécurité
 
@@ -96,12 +108,12 @@ Deux intercepteurs vérifient les autorisations :
 - `jwtInterceptor` : valide le JWT et attache `req.user` à la requête.
 - `imageOwnerInterceptor` : vérifie que l'image ciblée appartient à une catégorie de l'utilisateur connecté, expose `req.idImage` et `req.idCategorie`.
 
-Sur la route de déplacement direct, une vérification supplémentaire s'assure que la **catégorie de destination** appartient bien à l'utilisateur connecté (`SELECT id FROM categorie WHERE id = ? AND user_id = ?`).
+Toutes les routes de modification effectuent une vérification supplémentaire sur la catégorie ciblée pour s'assurer qu'elle appartient bien à l'utilisateur connecté (`SELECT id FROM categorie WHERE id = ? AND user_id = ?`).
 
 ## Structure
 
 ```
-│ BARRAS_Quentin_ANGULAR_Eval8Mi_Parcours
+BARRAS_Quentin_ANGULAR_Eval_Mi_Parcours
 ├── demo-dw1-26-back-main/         # Backend Express
 │   ├── index.js
 │   ├── connection.js
